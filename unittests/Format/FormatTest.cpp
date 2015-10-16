@@ -6520,6 +6520,18 @@ TEST_F(FormatTest, PullInlineFunctionDefinitionsIntoSingleLine) {
                MergeInlineOnly);
 }
 
+TEST_F(FormatTest, PullEmptyFunctionDefinitionsIntoSingleLineLinux) {
+  FormatStyle MergeEmptyLinux = getLLVMStyle();
+  MergeEmptyLinux.AllowShortFunctionsOnASingleLine = FormatStyle::SFS_Empty;
+  MergeEmptyLinux.BreakBeforeBraces = FormatStyle::BS_Linux;
+  verifyFormat("class C\n"
+               "{\n"
+               "  int f() {}\n"
+               "};",
+               MergeEmptyLinux);
+  verifyFormat("int f() {}", MergeEmptyLinux);
+}
+
 TEST_F(FormatTest, UnderstandContextOfRecordTypeKeywords) {
   // Elaborate type variable declarations.
   verifyFormat("struct foo a = {bar};\nint n;");

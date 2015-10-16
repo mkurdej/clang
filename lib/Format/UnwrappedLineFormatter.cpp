@@ -190,7 +190,7 @@ private:
     bool MergeShortFunctions =
         Style.AllowShortFunctionsOnASingleLine == FormatStyle::SFS_All ||
         (Style.AllowShortFunctionsOnASingleLine >= FormatStyle::SFS_Empty &&
-         I[1]->First->is(tok::r_brace)) ||
+         I[1]->First->isOneOf(tok::l_brace, tok::r_brace)) ||
         (Style.AllowShortFunctionsOnASingleLine == FormatStyle::SFS_Inline &&
          TheLine->Level != 0);
 

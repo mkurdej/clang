@@ -6518,18 +6518,21 @@ TEST_F(FormatTest, PullInlineFunctionDefinitionsIntoSingleLine) {
                "  return 42;\n"
                "}",
                MergeInlineOnly);
-}
 
-TEST_F(FormatTest, PullEmptyFunctionDefinitionsIntoSingleLineLinux) {
-  FormatStyle MergeEmptyLinux = getLLVMStyle();
-  MergeEmptyLinux.AllowShortFunctionsOnASingleLine = FormatStyle::SFS_Empty;
-  MergeEmptyLinux.BreakBeforeBraces = FormatStyle::BS_Linux;
-  verifyFormat("class C\n"
-               "{\n"
+  FormatStyle MergeEmptyCustom = getLLVMStyle();
+  MergeEmptyCustom.AllowShortFunctionsOnASingleLine = FormatStyle::SFS_Empty;
+  MergeEmptyCustom.BreakBeforeBraces = FormatStyle::BS_Custom;
+  MergeEmptyCustom.BraceWrapping.AfterFunction = true;
+  verifyFormat("class C {\n"
                "  int f() {}\n"
                "};",
-               MergeEmptyLinux);
-  verifyFormat("int f() {}", MergeEmptyLinux);
+               MergeEmptyCustom);
+  verifyFormat("int f() {}", MergeEmptyCustom);
+  verifyFormat("int f()\n"
+               "{\n"
+               "  return 0;\n"
+               "}",
+               MergeEmptyCustom);
 }
 
 TEST_F(FormatTest, UnderstandContextOfRecordTypeKeywords) {

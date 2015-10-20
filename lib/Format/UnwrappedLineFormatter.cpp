@@ -185,14 +185,18 @@ private:
                 ? 0
                 : Limit - TheLine->Last->TotalLength;
 
+    bool EmptyFunction =
+        (Style.AllowShortFunctionsOnASingleLine >= FormatStyle::SFS_Empty) &&
+        (((Style.BraceWrapping.AfterFunction && (I + 2 != E)) ? I[2] : I[1])
+             ->First->is(tok::r_brace));
     // FIXME: TheLine->Level != 0 might or might not be the right check to do.
     // If necessary, change to something smarter.
+    bool InlineFunction =
+        (Style.AllowShortFunctionsOnASingleLine == FormatStyle::SFS_Inline) &&
+        (TheLine->Level != 0);
     bool MergeShortFunctions =
         Style.AllowShortFunctionsOnASingleLine == FormatStyle::SFS_All ||
-        (Style.AllowShortFunctionsOnASingleLine >= FormatStyle::SFS_Empty &&
-         I[1]->First->isOneOf(tok::l_brace, tok::r_brace)) ||
-        (Style.AllowShortFunctionsOnASingleLine == FormatStyle::SFS_Inline &&
-         TheLine->Level != 0);
+        EmptyFunction || InlineFunction;
 
     if (TheLine->Last->is(TT_FunctionLBrace) &&
         TheLine->First != TheLine->Last) {

@@ -12,6 +12,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+using EnvDTE;
+using EnvDTE80;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -35,6 +38,7 @@ namespace LLVM.ClangFormat
         private string assumeFilename = "";
         private string fallbackStyle = "LLVM";
         private bool sortIncludes = false;
+        private bool formatOnSave = false;
         private string style = "file";
 
         public class StyleConverter : TypeConverter
@@ -163,6 +167,15 @@ namespace LLVM.ClangFormat
             get { return sortIncludes; }
             set { sortIncludes = value; }
         }
+
+        [Category("LLVM/Clang")]
+        [DisplayName("Format on save")]
+        [Description("Format source files on save.")]
+        public bool FormatOnSave
+        {
+            get { return formatOnSave; }
+            set { formatOnSave = value; }
+        }
     }
 
     [PackageRegistration(UseManagedResourcesOnly = true)]
@@ -172,6 +185,10 @@ namespace LLVM.ClangFormat
     [ProvideOptionPage(typeof(OptionPageGrid), "LLVM/Clang", "ClangFormat", 0, 0, true)]
     public sealed class ClangFormatPackage : Package
     {
+        private DTE2 dte;
+        private DocumentEvents events;
+        bool ignoreNextSaveEvent = false;
+
         #region Package Members
         protected override void Initialize()
         {
@@ -184,18 +201,84 @@ namespace LLVM.ClangFormat
                 var menuItem = new MenuCommand(MenuItemCallback, menuCommandID);
                 commandService.AddCommand(menuItem);
             }
+
+            dte = GetService(typeof(DTE)) as DTE2;
+            if (dte != null)
+            {
+                events = dte.Events.DocumentEvents;
+                events.DocumentSaved += OnDocumentSaved;
+            }
+        }
+
+        internal static IVsTextView GetIVsTextView(string filePath)
+        {
+            var dte2 = (EnvDTE80.DTE2)Microsoft.VisualStudio.Shell.Package.GetGlobalService(typeof(Microsoft.VisualStudio.Shell.Interop.SDTE));
+            Microsoft.VisualStudio.OLE.Interop.IServiceProvider sp = (Microsoft.VisualStudio.OLE.Interop.IServiceProvider)dte2;
+            ServiceProvider serviceProvider = new Microsoft.VisualStudio.Shell.ServiceProvider(sp);
+
+            IVsUIHierarchy uiHierarchy;
+            uint itemID;
+            IVsWindowFrame windowFrame;
+            if (VsShellUtilities.IsDocumentOpen(serviceProvider, filePath,
+                                                Guid.Empty, out uiHierarchy,
+                                                out itemID, out windowFrame))
+            {
+                // Get the IVsTextView from the windowFrame.
+                return VsShellUtilities.GetTextView(windowFrame);
+            }
+
+            return null;
+        }
+
+        internal static IWpfTextView GetWpfTextView(IVsTextView vTextView)
+        {
+            IWpfTextView view = null;
+            IVsUserData userData = vTextView as IVsUserData;
+
+            if (null != userData)
+            {
+                IWpfTextViewHost viewHost;
+                object holder;
+                Guid guidViewHost = DefGuidList.guidIWpfTextViewHost;
+                userData.GetData(ref guidViewHost, out holder);
+                viewHost = (IWpfTextViewHost)holder;
+                view = viewHost.TextView;
+            }
+
+            return view;
+        }
+
+        private void OnDocumentSaved(EnvDTE.Document Document)
+        {
+            if (!GetFormatOnSave())
+                return;
+
+            if (ignoreNextSaveEvent)
+            {
+                ignoreNextSaveEvent = false;
+                return;
+            }
+
+            IWpfTextView view = GetWpfTextView(GetIVsTextView(Document.FullName));
+            if (view == null)
+                return;
+
+            string text = view.TextBuffer.CurrentSnapshot.GetText();
+            int start = 0;
+            int end = text.Length;
+
+            RunClangFormatAndApplyReplacements(view, text, start, end);
+
+            ignoreNextSaveEvent = true;
+            Document.Save();
         }
         #endregion
 
-        private void MenuItemCallback(object sender, EventArgs args)
+        private void RunClangFormatAndApplyReplacements(IWpfTextView view, string text, int start, int end)
         {
-            IWpfTextView view = GetCurrentView();
             if (view == null)
-                // We're not in a text view.
                 return;
-            string text = view.TextBuffer.CurrentSnapshot.GetText();
-            int start = view.Selection.Start.Position.GetContainingLine().Start.Position;
-            int end = view.Selection.End.Position.GetContainingLine().End.Position;
+
             int length = end - start;
             // clang-format doesn't support formatting a range that starts at the end
             // of the file.
@@ -203,6 +286,7 @@ namespace LLVM.ClangFormat
                 start = text.Length - 1;
             string path = GetDocumentParent(view);
             string filePath = GetDocumentPath(view);
+
             try
             {
                 var root = XElement.Parse(RunClangFormat(text, start, length, path, filePath));
@@ -231,6 +315,20 @@ namespace LLVM.ClangFormat
                         OLEMSGICON.OLEMSGICON_INFO,
                         0, out result);
             }
+        }
+
+        private void MenuItemCallback(object sender, EventArgs args)
+        {
+            IWpfTextView view = GetCurrentView();
+            if (view == null)
+                // We're not in a text view.
+                return;
+
+            string text = view.TextBuffer.CurrentSnapshot.GetText();
+            int start = view.Selection.Start.Position.GetContainingLine().Start.Position;
+            int end = view.Selection.End.Position.GetContainingLine().End.Position;
+
+            RunClangFormatAndApplyReplacements(view, text, start, end);
         }
 
         /// <summary>
@@ -347,6 +445,12 @@ namespace LLVM.ClangFormat
         {
             var page = (OptionPageGrid)GetDialogPage(typeof(OptionPageGrid));
             return page.SortIncludes;
+        }
+
+        private bool GetFormatOnSave()
+        {
+            var page = (OptionPageGrid)GetDialogPage(typeof(OptionPageGrid));
+            return page.FormatOnSave;
         }
 
         private string GetDocumentParent(IWpfTextView view)

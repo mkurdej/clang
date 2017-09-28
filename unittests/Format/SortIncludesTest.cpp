@@ -136,6 +136,19 @@ TEST_F(SortIncludesTest, LeadingWhitespace) {
             sort("# include \"a.h\"\n"
                  "#  include \"c.h\"\n"
                  "#   include \"b.h\"\n"));
+
+  EXPECT_EQ("#include \"a.h\"\n"
+            "#include \"b.h\"\n"
+            "#include \"c.h\"\n",
+            sort("\t#include \"a.h\"\n"
+                 "\t #include \"c.h\"\n"
+                 " \t #include \"b.h\"\n"));
+  EXPECT_EQ("#include \"a.h\"\n"
+            "#include \"b.h\"\n"
+            "#include \"c.h\"\n",
+            sort("#\tinclude \"a.h\"\n"
+                 "# \tinclude \"c.h\"\n"
+                 "# \t include \"b.h\"\n"));
 }
 
 TEST_F(SortIncludesTest, GreaterInComment) {

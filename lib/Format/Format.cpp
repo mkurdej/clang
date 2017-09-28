@@ -1483,7 +1483,7 @@ private:
 };
 
 const char IncludeRegexPattern[] =
-    R"(^[\t\ ]*#[\t\ ]*(import|include)[^"<]*(["<][^">]*[">]))";
+    R"(^(\t| )*#(\t| )*(import|include)[^"<]*(["<][^">]*[">]))";
 
 } // anonymous namespace
 
@@ -1495,7 +1495,7 @@ tooling::Replacements sortCppIncludes(const FormatStyle &Style, StringRef Code,
   unsigned Prev = 0;
   unsigned SearchFrom = 0;
   llvm::Regex IncludeRegex(IncludeRegexPattern);
-  SmallVector<StringRef, 4> Matches;
+  SmallVector<StringRef, 5> Matches;
   SmallVector<IncludeDirective, 16> IncludesInBlock;
 
   // In compiled files, consider the first #include to be the main #include of
@@ -1523,7 +1523,7 @@ tooling::Replacements sortCppIncludes(const FormatStyle &Style, StringRef Code,
 
     if (!FormattingOff && !Line.endswith("\\")) {
       if (IncludeRegex.match(Line, &Matches)) {
-        StringRef IncludeName = Matches[2];
+        StringRef IncludeName = Matches[4];
         int Category = Categories.getIncludePriority(
             IncludeName,
             /*CheckMainHeader=*/!MainIncludeFound && FirstIncludeBlock);
@@ -1775,7 +1775,7 @@ fixCppIncludeInsertions(StringRef Code, const tooling::Replacements &Replaces,
 
   llvm::Regex IncludeRegex(IncludeRegexPattern);
   llvm::Regex DefineRegex(R"(^[\t\ ]*#[\t\ ]*define[\t\ ]*[^\\]*$)");
-  SmallVector<StringRef, 4> Matches;
+  SmallVector<StringRef, 5> Matches;
 
   StringRef FileName = Replaces.begin()->getFilePath();
   IncludeCategoryManager Categories(Style, FileName);
@@ -1805,7 +1805,7 @@ fixCppIncludeInsertions(StringRef Code, const tooling::Replacements &Replaces,
     NextLineOffset = std::min(Code.size(), Offset + Line.size() + 1);
     if (IncludeRegex.match(Line, &Matches)) {
       // The header name with quotes or angle brackets.
-      StringRef IncludeName = Matches[2];
+      StringRef IncludeName = Matches[4];
       ExistingIncludes.insert(IncludeName);
       // Only record the offset of current #include if we can insert after it.
       if (Offset <= MaxInsertOffset) {
@@ -1858,7 +1858,7 @@ fixCppIncludeInsertions(StringRef Code, const tooling::Replacements &Replaces,
     assert(Matched && "Header insertion replacement must have replacement text "
                       "'#include ...'");
     (void)Matched;
-    auto IncludeName = Matches[2];
+    auto IncludeName = Matches[4];
     if (ExistingIncludes.find(IncludeName) != ExistingIncludes.end()) {
       DEBUG(llvm::dbgs() << "Skip adding existing include : " << IncludeName
                          << "\n");

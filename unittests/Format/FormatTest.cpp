@@ -1574,8 +1574,8 @@ TEST_F(FormatTest, FormatsCompactNamespaces) {
   Style.CompactNamespaces = true;
 
   verifyFormat("namespace A { namespace B {\n"
-			   "}} // namespace A::B",
-			   Style);
+               "}} // namespace A::B",
+               Style);
 
   EXPECT_EQ("namespace out { namespace in {\n"
             "}} // namespace out::in",
@@ -3428,39 +3428,39 @@ TEST_F(FormatTest, BreakConstructorInitializersAfterColon) {
   verifyFormat(
       "SomeClass::Constructor() :\n"
       "    aaaaaaaaaaaaa(aaaaaaaaaaaaaa), aaaaaaaaaaaaaaa(aaaaaaaaaaaa) {}",
-	  Style);
+      Style);
 
   verifyFormat(
       "SomeClass::Constructor() :\n"
       "    aaaaaaaaaaaaa(aaaaaaaaaaaaaa), aaaaaaaaaaaaa(aaaaaaaaaaaaaa),\n"
       "    aaaaaaaaaaaaa(aaaaaaaaaaaaaa) {}",
-	  Style);
+      Style);
   verifyFormat(
       "SomeClass::Constructor() :\n"
       "    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa(aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa),\n"
       "    aaaaaaaaaaaaaaa(aaaaaaaaaaaa) {}",
-	  Style);
+      Style);
   verifyFormat("Constructor(aaaaaa aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,\n"
                "            aaaaaa aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa) :\n"
                "    aaaaaaaaaa(aaaaaa) {}",
-			   Style);
+               Style);
 
   verifyFormat("Constructor() :\n"
                "    aaaaaaaaaaaaaaaaaaaaaaaa(aaaaaaaaaaaaaaaaaaaaaaaaaaa),\n"
                "    aaaaaaaaaaaaaaaaaaaaaaaa(aaaaaaaaaaaaaaaaaaaaaaaaaaa,\n"
                "                             aaaaaaaaaaaaaaaaaaaaaaaaaaa),\n"
                "    aaaaaaaaaaaaaaaaaaaaaaa() {}",
-			   Style);
+               Style);
 
   verifyFormat("Constructor() :\n"
                "    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa(\n"
                "        aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa) {}",
-			   Style);
+               Style);
 
   verifyFormat("Constructor(int Parameter = 0) :\n"
                "    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa(aaaaaaaaaaaaaaaaa),\n"
                "    aaaaaaaaaaaa(aaaaaaaaaaaaaaaaa) {}",
-			   Style);
+               Style);
   verifyFormat("Constructor() :\n"
                "    aaaaaaaaaaaaaaaaaaaaaa(a), bbbbbbbbbbbbbbbbbbbbbbbb(b) {\n"
                "}",
@@ -3468,7 +3468,7 @@ TEST_F(FormatTest, BreakConstructorInitializersAfterColon) {
   verifyFormat("Constructor() :\n"
                "    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa(\n"
                "        aaaaaaaaaaaaaaaaaaaaaaaaa(aaaa, aaaa)) {}",
-			   Style);
+               Style);
 
   // Here a line could be saved by splitting the second initializer onto two
   // lines, but that is not desirable.
@@ -3476,7 +3476,7 @@ TEST_F(FormatTest, BreakConstructorInitializersAfterColon) {
                "    aaaaaaaaaaaaaaaaaaaaaaaa(aaaaaaaaaaaaaaaaaaaaaaaa),\n"
                "    aaaaaaaaaaa(aaaaaaaaaaa),\n"
                "    aaaaaaaaaaaaaaaaaaaaat(aaaaaaaaaaaaaaaaaaaaaaaaaaaa) {}",
-			   Style);
+               Style);
 
   FormatStyle OnePerLine = Style;
   OnePerLine.ConstructorInitializerAllOnOneLineOrOnePerLine = true;
@@ -3526,7 +3526,7 @@ TEST_F(FormatTest, BreakConstructorInitializersAfterColon) {
             format("Constructor() :\n"
                    "    // Comment forcing unwanted break.\n"
                    "    aaaa(aaaa) {}",
-				   Style));
+                   Style));
 
   Style.ColumnLimit = 0;
   verifyFormat("SomeClass::Constructor() :\n"
@@ -3536,7 +3536,7 @@ TEST_F(FormatTest, BreakConstructorInitializersAfterColon) {
                "    a(a) {}",
                Style);
   verifyFormat("SomeClass::Constructor() :\n"
-			   "    a(a), b(b), c(c) {}",
+               "    a(a), b(b), c(c) {}",
                Style);
   verifyFormat("SomeClass::Constructor() :\n"
                "    a(a) {\n"
@@ -3547,12 +3547,12 @@ TEST_F(FormatTest, BreakConstructorInitializersAfterColon) {
 
   Style.AllowShortFunctionsOnASingleLine = FormatStyle::SFS_None;
   verifyFormat("SomeClass::Constructor() :\n"
-			   "    a(a), b(b), c(c) {\n"
-			   "}",
+               "    a(a), b(b), c(c) {\n"
+               "}",
                Style);
   verifyFormat("SomeClass::Constructor() :\n"
                "    a(a) {\n"
-			   "}",
+               "}",
                Style);
 
   Style.ColumnLimit = 80;
@@ -6519,7 +6519,7 @@ TEST_F(FormatTest, LayoutCxx11BraceInitializers) {
   // Binpacking only if there is no trailing comma
   verifyFormat("const Aaaaaa aaaaa = {aaaaaaaaaa, bbbbbbbbbb,\n"
                "                      cccccccccc, dddddddddd};",
-			   getLLVMStyleWithColumns(50));
+               getLLVMStyleWithColumns(50));
   verifyFormat("const Aaaaaa aaaaa = {\n"
                "    aaaaaaaaaaa,\n"
                "    bbbbbbbbbbb,\n"

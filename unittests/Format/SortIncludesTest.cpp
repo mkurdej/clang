@@ -413,6 +413,11 @@ TEST_F(SortIncludesTest, DoNotTreatTAsATab) {
             "#include <a>\n",
             sort("#ttt include <b>\n"
                  "#include <a>\n"));
+
+  EXPECT_EQ("ttt #include <b>\n"
+            "#include <a>\n",
+            sort("ttt #include <b>\n"
+                 "#include <a>\n"));
 }
 
 } // end namespace

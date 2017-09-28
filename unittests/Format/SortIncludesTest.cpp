@@ -46,7 +46,6 @@ protected:
   }
 
   FormatStyle Style = getLLVMStyle();
-
 };
 
 TEST_F(SortIncludesTest, BasicSorting) {

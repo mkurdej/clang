@@ -408,6 +408,13 @@ TEST_F(SortIncludesTest, DoNotSortLikelyXml) {
                  "-->"));
 }
 
+TEST_F(SortIncludesTest, DoNotTreatTAsATab) {
+  EXPECT_EQ("#ttt include <b>\n"
+            "#include <a>\n",
+            sort("#ttt include <b>\n"
+                 "#include <a>\n"));
+}
+
 } // end namespace
 } // end namespace format
 } // end namespace clang
